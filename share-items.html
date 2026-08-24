@@ -161,19 +161,19 @@ const parse = i => {
 }
 
 const sections = [
-  ['bank', 'Banque', 6],
-  ['bankbag5', 'Sac de banque 1', 4],
-  ['bankbag6', 'Sac de banque 2', 4],
-  ['bankbag7', 'Sac de banque 3', 4],
-  ['bankbag8', 'Sac de banque 4', 4],
-  ['bankbag9', 'Sac de banque 5', 4],
-  ['bankbag10', 'Sac de banque 6', 4],
-  ['bankbag11', 'Sac de banque 7', 4],
-  ['bag1', 'Sac du personnage 1', 4],
-  ['bag2', 'Sac du personnage 2', 4],
-  ['bag3', 'Sac du personnage 3', 4],
-  ['bag4', 'Sac du personnage 4', 4],
-  ['backpack', 'Sac à dos', 4],
+  ['bank', 'Bank', 6],
+  ['bankbag11', 'Bank Bag 7', 4],
+  ['bankbag10', 'Bank Bag 6', 4],
+  ['bankbag9', 'Bank Bag 5', 4],
+  ['bankbag8', 'Bank Bag 4', 4],
+  ['bankbag7', 'Bank Bag 3', 4],
+  ['bankbag6', 'Bank Bag 2', 4],
+  ['bankbag5', 'Bank Bag 1', 4],
+  ['bag4', 'Bag 4', 4],
+  ['bag3', 'Bag 3', 4],
+  ['bag2', 'Bag 2', 4],
+  ['bag1', 'Bag 1', 4],
+  ['backpack', 'Backpack', 4],
 ]
 
 const createSection = (title, entries, columns) => {
@@ -232,7 +232,7 @@ if (hasGroupedItems) {
     createSection(title, params[key], columns)
   }
 } else if (params.items) {
-  createSection('Objets', params.items, 4)
+  createSection('Items', params.items, 4)
 }
 
 </script>
