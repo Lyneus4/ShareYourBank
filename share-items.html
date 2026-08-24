@@ -27,10 +27,13 @@ a {
   box-shadow: inset #111 0px 1px 7px 11px;
 }
 .section-items {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 810px;
-  justify-content: center;
+  --columns: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 44px);
+  grid-auto-rows: 44px;
+  gap: 2px;
+  width: max-content;
+  margin: 0 auto;
 }
 
 #items {
@@ -67,6 +70,16 @@ a {
 
 #info a:hover {
   text-decoration: underline;
+}
+
+.empty-slot {
+  display: block;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  background: #222;
+  border: 1px solid #333;
+  box-shadow: inset #111 0px 1px 7px 6px;
 }
 
 .section-items a::before {
@@ -134,44 +147,55 @@ document.getElementById('race').textContent = params.race
 document.getElementById('realm').textContent = params.realm
 
 const parse = i => {
-  if (!i) return null
+  if (!i || i === '-') return null
   const [ data, count = '1' ] = i.split('*')
   const [id, rand, ench ] = data.split('.')
   return [id, rand, ench, count].map(base62)
 }
 
 const sections = [
-  ['bank', 'Banque'],
-  ['bankbag5', 'Sac de banque 1'],
-  ['bankbag6', 'Sac de banque 2'],
-  ['bankbag7', 'Sac de banque 3'],
-  ['bankbag8', 'Sac de banque 4'],
-  ['bankbag9', 'Sac de banque 5'],
-  ['bankbag10', 'Sac de banque 6'],
-  ['bankbag11', 'Sac de banque 7'],
-  ['bag1', 'Sac du personnage 1'],
-  ['bag2', 'Sac du personnage 2'],
-  ['bag3', 'Sac du personnage 3'],
-  ['bag4', 'Sac du personnage 4'],
-  ['backpack', 'Sac à dos'],
+  ['bank', 'Banque', 6],
+  ['bankbag5', 'Sac de banque 1', 4],
+  ['bankbag6', 'Sac de banque 2', 4],
+  ['bankbag7', 'Sac de banque 3', 4],
+  ['bankbag8', 'Sac de banque 4', 4],
+  ['bankbag9', 'Sac de banque 5', 4],
+  ['bankbag10', 'Sac de banque 6', 4],
+  ['bankbag11', 'Sac de banque 7', 4],
+  ['bag1', 'Sac du personnage 1', 4],
+  ['bag2', 'Sac du personnage 2', 4],
+  ['bag3', 'Sac du personnage 3', 4],
+  ['bag4', 'Sac du personnage 4', 4],
+  ['backpack', 'Sac à dos', 4],
 ]
 
-const createSection = (title, entries) => {
-  // Keep empty sections hidden, but allow a section to be created when the
-  // parameter exists in the URL. This makes the separation visible even if
-  // a particular bag is empty.
+const createSection = (title, entries, columns) => {
   if (entries === undefined || entries === null) return
 
   const section = document.createElement('section')
   section.className = 'item-section'
+
   const heading = document.createElement('h2')
   heading.textContent = title
+
   const itemsElement = document.createElement('div')
   itemsElement.className = 'section-items'
+  itemsElement.style.setProperty('--columns', columns)
+
   section.appendChild(heading)
   section.appendChild(itemsElement)
 
-  for (const parsed of entries.split(',').map(parse).filter(Boolean)) {
+  for (const token of entries.split(',')) {
+    if (token === '-') {
+      const empty = document.createElement('span')
+      empty.className = 'empty-slot'
+      itemsElement.appendChild(empty)
+      continue
+    }
+
+    const parsed = parse(token)
+    if (!parsed) continue
+
     const [id, rand, ench, count] = parsed
     const a = document.createElement('a')
     a.href = `https://classic.wowhead.com/item=${id}`
@@ -183,11 +207,13 @@ const createSection = (title, entries) => {
   document.getElementById('items').appendChild(section)
 }
 
-const hasGroupedItems = sections.some(([key]) => params[key])
+const hasGroupedItems = sections.some(([key]) => params[key] !== undefined)
 if (hasGroupedItems) {
-  for (const [key, title] of sections) createSection(title, params[key])
+  for (const [key, title, columns] of sections) {
+    createSection(title, params[key], columns)
+  }
 } else if (params.items) {
-  createSection('Objets', params.items)
+  createSection('Objets', params.items, 4)
 }
 
 </script>
