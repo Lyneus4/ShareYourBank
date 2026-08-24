@@ -82,6 +82,186 @@ a {
   box-shadow: inset #111 0px 1px 7px 6px;
 }
 
+.spacer-slot {
+  display: block;
+  width: 44px;
+  height: 44px;
+  visibility: hidden;
+}
+
+.section-items a::before {
+  content: attr(data-count);
+  display: block;
+  z-index: 1;
+  position: absolute;
+  left: 0;
+  right: 4px;
+  bottom: 1px;
+  padding: 0 1px;
+  box-sizing: border-box;
+  text-align: right;
+  line-height: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  pointer-events: none;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: white;
+}
+
+/* Do not leave an empty counter background on single items. */
+.section-items a[data-count=""]::before {
+  display: none;
+}
+
+.q1 del { filter: brightness(2) }
+.q2 del { filter: sepia(1) hue-rotate(50deg) saturate(4) }
+.q3 del { filter: sepia(1) hue-rotate(180deg) saturate(4) }
+.q4 del { filter: sepia(1) hue-rotate(233deg) saturate(4) }
+.q5 del { filter: sepia(1) hue-rotate(340deg) saturate(4) }
+</style>
+<link type="text/css" href="https://wow.zamimg.com/css/basic.css?&amp;14" rel="stylesheet">
+<link type="text/css" href="https://wow.zamimg.com/css/global/icon.css" rel="stylesheet">
+</head>
+<body>
+<div id="info">
+  <span id="name">player</span>
+  <br />
+  <span id="race">race</span> - <span id="realm">realm</span>
+  <br />
+  <br />
+  <a href="https://www.curseforge.com/wow/addons/shareyourbank/">get the add on</a> to share your own
+</div>
+<div id="items"></div>
+<script>
+const whTooltips = {
+  colorLinks: true,
+  renameLinks: true,
+  iconizeLinks: true,
+  iconSize: 'medium',
+}
+
+const digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+const base62 = str => str
+  ? str.split('').reduceRight((t,n,i) => t + 62 ** (str.length-(i+1)) * digits.indexOf(n), 0)
+  : 0
+
+const params = Object.fromEntries(new URLSearchParams(location.search))
+document.getElementById('name').textContent = params.name
+document.getElementById('race').textContent = params.race
+document.getElementById('realm').textContent = params.realm
+
+const parse = i => {
+  if (!i || i === '-') return null
+  const [ data, count = '1' ] = i.split('*')
+  const [id, rand, ench ] = data.split('.')
+  return [id, rand, ench, count].map(base62)
+}
+
+const sections = [
+  ['bank', 'Banque', 6],
+  ['bankbag5', 'Sac de banque 1', 4],
+  ['bankbag6', 'Sac de banque 2', 4],
+  ['bankbag7', 'Sac de banque 3', 4],
+  ['bankbag8', 'Sac de banque 4', 4],
+  ['bankbag9', 'Sac de banque 5', 4],
+  ['bankbag10', 'Sac de banque 6', 4],
+  ['bankbag11', 'Sac de banque 7', 4],
+  ['bag1', 'Sac du personnage 1', 4],
+  ['bag2', 'Sac du personnage 2', 4],
+  ['bag3', 'Sac du personnage 3', 4],
+  ['bag4', 'Sac du personnage 4', 4],
+  ['backpack', 'Sac à dos', 4],
+]
+
+const createSection = (title, entries, columns) => {
+  if (entries === undefined || entries === null) return
+
+  const section = document.createElement('section')
+  section.className = 'item-section'
+
+  const heading = document.createElement('h2')
+  heading.textContent = title
+
+  const itemsElement = document.createElement('div')
+  itemsElement.className = 'section-items'
+  itemsElement.style.setProperty('--columns', columns)
+
+  section.appendChild(heading)
+  section.appendChild(itemsElement)
+
+  const tokens = entries.split(',')
+  
+  // Dans l'UI WoW, si un sac a un nombre de slots non multiple du nombre de colonnes (ex: 18 slots sur 4 cols = 2+4x4),
+  // la première ligne contient le surplus et est complétée avec des espaces transparents à gauche.
+  const remainder = tokens.length % columns
+  if (remainder !== 0) {
+    const missingInFirstRow = columns - remainder
+    for (let i = 0; i < missingInFirstRow; i++) {
+      const spacer = document.createElement('span')
+      spacer.className = 'spacer-slot'
+      itemsElement.appendChild(spacer)
+    }
+  }
+
+  for (const token of tokens) {
+    if (token === '-') {
+      const empty = document.createElement('span')
+      empty.className = 'empty-slot'
+      itemsElement.appendChild(empty)
+      continue
+    }
+
+    const parsed = parse(token)
+    if (!parsed) continue
+
+    const [id, rand, ench, count] = parsed
+    const a = document.createElement('a')
+    a.href = `https://classic.wowhead.com/item=${id}`
+    a.dataset.wowhead = new URLSearchParams({rand, ench})
+    a.dataset.count = count > 1 ? count : ''
+    itemsElement.appendChild(a)
+  }
+
+  document.getElementById('items').appendChild(section)
+}
+
+const hasGroupedItems = sections.some(([key]) => params[key] !== undefined)
+if (hasGroupedItems) {
+  for (const [key, title, columns] of sections) {
+    createSection(title, params[key], columns)
+  }
+} else if (params.items) {
+  createSection('Objets', params.items, 4)
+}
+
+</script>
+<script src="https://wow.zamimg.com/widgets/power.js"></script>
+</body>
+</html>#info {
+  margin-bottom: 5px;
+  text-align: center;
+}
+#info a {
+  color:#ecd93a;
+}
+
+#info a:hover {
+  text-decoration: underline;
+}
+
+.empty-slot {
+  display: block;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  background: #222;
+  border: 1px solid #333;
+  box-shadow: inset #111 0px 1px 7px 6px;
+}
+
 .section-items a::before {
   content: attr(data-count);
   display: block;
