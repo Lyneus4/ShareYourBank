@@ -37,15 +37,19 @@ a {
 }
 
 #items {
-  width: min(100%, 900px);
+  width: min(100%, 1100px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
 }
 
 .item-section {
-  margin: 18px auto 0;
   padding: 12px;
   border: 1px solid #333;
   border-radius: 4px;
   background: #181818;
+  box-sizing: border-box;
 }
 
 .item-section h2 {
@@ -61,7 +65,7 @@ a {
 }
 
 #info {
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   text-align: center;
 }
 #info a {
