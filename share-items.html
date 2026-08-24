@@ -157,7 +157,10 @@ const sections = [
 ]
 
 const createSection = (title, entries) => {
-  if (!entries) return
+  // Keep empty sections hidden, but allow a section to be created when the
+  // parameter exists in the URL. This makes the separation visible even if
+  // a particular bag is empty.
+  if (entries === undefined || entries === null) return
 
   const section = document.createElement('section')
   section.className = 'item-section'
