@@ -69,6 +69,11 @@ a {
   color: white;
 }
 
+/* Do not leave an empty counter background on single items. */
+#items a[data-count=""]::before {
+  display: none;
+}
+
 .q1 del { filter: brightness(2) }
 .q2 del { filter: sepia(1) hue-rotate(50deg) saturate(4) }
 .q3 del { filter: sepia(1) hue-rotate(180deg) saturate(4) }
