@@ -128,10 +128,10 @@ const base62 = str => str
   ? str.split('').reduceRight((t,n,i) => t + 62 ** (str.length-(i+1)) * digits.indexOf(n), 0)
   : 0
 
-const queryParams = new URLSearchParams(location.search)
-document.getElementById('name').textContent = queryParams.get('name') || ''
-document.getElementById('race').textContent = queryParams.get('race') || ''
-document.getElementById('realm').textContent = queryParams.get('realm') || ''
+const params = Object.fromEntries(new URLSearchParams(location.search))
+document.getElementById('name').textContent = params.name
+document.getElementById('race').textContent = params.race
+document.getElementById('realm').textContent = params.realm
 
 const parse = i => {
   if (!i) return null
@@ -140,26 +140,11 @@ const parse = i => {
   return [id, rand, ench, count].map(base62)
 }
 
-const sectionKeys = [...queryParams.keys()]
-  .filter(key => key === 'bank' || /^bankbag_\d+$/.test(key) || /^bag_\d+$/.test(key))
-  .filter((key, index, keys) => keys.indexOf(key) === index)
-  .sort((left, right) => {
-    if (left === 'bank') return -1
-    if (right === 'bank') return 1
-    const leftIsBank = left.startsWith('bankbag_')
-    const rightIsBank = right.startsWith('bankbag_')
-    if (leftIsBank !== rightIsBank) return leftIsBank ? -1 : 1
-    const leftNumber = Number(left.split('_')[1])
-    const rightNumber = Number(right.split('_')[1])
-    return rightNumber - leftNumber
-  })
-
-const sectionTitle = key => {
-  if (key === 'bank') return 'Banque'
-  if (key.startsWith('bankbag_')) return `Sac de banque ${key.split('_')[1]}`
-  if (key === 'bag_0') return 'Sac à dos'
-  return `Sac porté ${key.split('_')[1]}`
-}
+const sections = [
+  ['bank', 'Banque'],
+  ['bankbags', 'Sacs de banque'],
+  ['bags', 'Sacs du personnage'],
+]
 
 const createSection = (title, entries) => {
   if (!entries) return
@@ -185,10 +170,11 @@ const createSection = (title, entries) => {
   document.getElementById('items').appendChild(section)
 }
 
-if (sectionKeys.length > 0) {
-  for (const key of sectionKeys) createSection(sectionTitle(key), queryParams.get(key))
-} else if (queryParams.get('items')) {
-  createSection('Objets', queryParams.get('items'))
+const hasGroupedItems = sections.some(([key]) => params[key])
+if (hasGroupedItems) {
+  for (const [key, title] of sections) createSection(title, params[key])
+} else if (params.items) {
+  createSection('Objets', params.items)
 }
 
 </script>
