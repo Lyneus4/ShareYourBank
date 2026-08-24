@@ -19,18 +19,42 @@ a {
   white-space: nowrap;
 }
 
-#items a {
+.section-items a {
   display: block;
   position: relative;
   width: 44px;
   background: #333;
   box-shadow: inset #111 0px 1px 7px 11px;
 }
-#items {
+.section-items {
   display: flex;
   flex-wrap: wrap;
   max-width: 810px;
   justify-content: center;
+}
+
+#items {
+  width: min(100%, 900px);
+}
+
+.item-section {
+  margin: 18px auto 0;
+  padding: 12px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: #181818;
+}
+
+.item-section h2 {
+  margin: 0 0 10px;
+  color: #ecd93a;
+  font-size: 16px;
+  font-weight: normal;
+  text-align: left;
+}
+
+.item-section:empty {
+  display: none;
 }
 
 #info {
@@ -45,7 +69,7 @@ a {
   text-decoration: underline;
 }
 
-#items a::before {
+.section-items a::before {
   content: attr(data-count);
   display: block;
   z-index: 1;
@@ -68,7 +92,7 @@ a {
 }
 
 /* Do not leave an empty counter background on single items. */
-#items a[data-count=""]::before {
+.section-items a[data-count=""]::before {
   display: none;
 }
 
@@ -88,10 +112,9 @@ a {
   <span id="race">race</span> - <span id="realm">realm</span>
   <br />
   <br />
-  <a href="https://www.curseforge.com/wow/addons/shareitems">get the add on</a> to share your own
+  <a href="https://www.curseforge.com/wow/addons/shareyourbank/">get the add on</a> to share your own
 </div>
-<div id="items">
-</div>
+<div id="items"></div>
 <script>
 const whTooltips = {
   colorLinks: true,
@@ -105,24 +128,53 @@ const base62 = str => str
   ? str.split('').reduceRight((t,n,i) => t + 62 ** (str.length-(i+1)) * digits.indexOf(n), 0)
   : 0
 
-const itemsElement = document.getElementById('items')
 const params = Object.fromEntries(new URLSearchParams(location.search))
 document.getElementById('name').textContent = params.name
 document.getElementById('race').textContent = params.race
 document.getElementById('realm').textContent = params.realm
 
 const parse = i => {
+  if (!i) return null
   const [ data, count = '1' ] = i.split('*')
   const [id, rand, ench ] = data.split('.')
   return [id, rand, ench, count].map(base62)
 }
 
-for (const [id, rand, ench, count] of params.items.split(',').map(parse)) {
-  const a = document.createElement('a')
-  a.href = `https://classic.wowhead.com/item=${id}`
-  a.dataset.wowhead = new URLSearchParams({rand, ench})
-  a.dataset.count = count > 1 ? count : ''
-  itemsElement.appendChild(a)
+const sections = [
+  ['bank', 'Banque'],
+  ['bankbags', 'Sacs de banque'],
+  ['bags', 'Sacs du personnage'],
+]
+
+const createSection = (title, entries) => {
+  if (!entries) return
+
+  const section = document.createElement('section')
+  section.className = 'item-section'
+  const heading = document.createElement('h2')
+  heading.textContent = title
+  const itemsElement = document.createElement('div')
+  itemsElement.className = 'section-items'
+  section.appendChild(heading)
+  section.appendChild(itemsElement)
+
+  for (const parsed of entries.split(',').map(parse).filter(Boolean)) {
+    const [id, rand, ench, count] = parsed
+    const a = document.createElement('a')
+    a.href = `https://classic.wowhead.com/item=${id}`
+    a.dataset.wowhead = new URLSearchParams({rand, ench})
+    a.dataset.count = count > 1 ? count : ''
+    itemsElement.appendChild(a)
+  }
+
+  document.getElementById('items').appendChild(section)
+}
+
+const hasGroupedItems = sections.some(([key]) => params[key])
+if (hasGroupedItems) {
+  for (const [key, title] of sections) createSection(title, params[key])
+} else if (params.items) {
+  createSection('Objets', params.items)
 }
 
 </script>
