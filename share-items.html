@@ -1,216 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>share items</title>
-    <style>
-      html,
-      body {
-        font-family: monospace;
-        background: #111;
-        color: #ccc;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
+<head>
+  <title>share items</title>
+<style>
+html, body {
+  font-family: monospace;
+  background: #111;
+  color: #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-      a {
-        text-decoration: none;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+a {
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-      .section-items a {
-        display: block;
-        position: relative;
-        width: 44px;
-        background: #333;
-        box-shadow: inset #111 0px 1px 7px 11px;
-      }
-      .section-items {
-        display: flex;
-        flex-wrap: wrap;
-        max-width: 810px;
-        justify-content: center;
-      }
+#items a {
+  display: block;
+  position: relative;
+  width: 44px;
+  background: #333;
+  box-shadow: inset #111 0px 1px 7px 11px;
+}
+#items {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 810px;
+  justify-content: center;
+}
 
-      #items {
-        width: min(100%, 900px);
-      }
+#info {
+  margin-bottom: 5px;
+  text-align: center;
+}
+#info a {
+  color:#ecd93a;
+}
 
-      .item-section {
-        margin: 18px auto 0;
-        padding: 12px;
-        border: 1px solid #333;
-        border-radius: 4px;
-        background: #181818;
-      }
+#info a:hover {
+  text-decoration: underline;
+}
 
-      .item-section h2 {
-        margin: 0 0 10px;
-        color: #ecd93a;
-        font-size: 16px;
-        font-weight: normal;
-        text-align: left;
-      }
+#items a::before {
+  content: attr(data-count);
+  display: block;
+  z-index: 1;
+  position: absolute;
+  left: 0;
+  right: 4px;
+  bottom: 1px;
+  padding: 0 1px;
+  box-sizing: border-box;
+  text-align: right;
+  line-height: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  pointer-events: none;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: white;
+}
 
-      .item-section:empty {
-        display: none;
-      }
+/* Do not leave an empty counter background on single items. */
+#items a[data-count=""]::before {
+  display: none;
+}
 
-      #info {
-        margin-bottom: 5px;
-        text-align: center;
-      }
-      #info a {
-        color: #ecd93a;
-      }
+.q1 del { filter: brightness(2) }
+.q2 del { filter: sepia(1) hue-rotate(50deg) saturate(4) }
+.q3 del { filter: sepia(1) hue-rotate(180deg) saturate(4) }
+.q4 del { filter: sepia(1) hue-rotate(233deg) saturate(4) }
+.q5 del { filter: sepia(1) hue-rotate(340deg) saturate(4) }
+</style>
+<link type="text/css" href="https://wow.zamimg.com/css/basic.css?&amp;14" rel="stylesheet">
+<link type="text/css" href="https://wow.zamimg.com/css/global/icon.css" rel="stylesheet">
+</head>
+<body>
+<div id="info">
+  <span id="name">player</span>
+  <br />
+  <span id="race">race</span> - <span id="realm">realm</span>
+  <br />
+  <br />
+  <a href="https://www.curseforge.com/wow/addons/shareyourbank/">get the add on</a> to share your own
+</div>
+<div id="items">
+</div>
+<script>
+const whTooltips = {
+  colorLinks: true,
+  renameLinks: true,
+  iconizeLinks: true,
+  iconSize: 'medium',
+}
 
-      #info a:hover {
-        text-decoration: underline;
-      }
+const digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+const base62 = str => str
+  ? str.split('').reduceRight((t,n,i) => t + 62 ** (str.length-(i+1)) * digits.indexOf(n), 0)
+  : 0
 
-      .section-items a::before {
-        content: attr(data-count);
-        display: block;
-        z-index: 1;
-        position: absolute;
-        left: 0;
-        right: 4px;
-        bottom: 1px;
-        padding: 0 1px;
-        box-sizing: border-box;
-        text-align: right;
-        line-height: 15px;
-        font-size: 12px;
-        font-weight: bold;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: clip;
-        pointer-events: none;
-        text-shadow:
-          -1px -1px 0 #000,
-          1px -1px 0 #000,
-          -1px 1px 0 #000,
-          1px 1px 0 #000;
-        color: white;
-      }
+const itemsElement = document.getElementById('items')
+const params = Object.fromEntries(new URLSearchParams(location.search))
+document.getElementById('name').textContent = params.name
+document.getElementById('race').textContent = params.race
+document.getElementById('realm').textContent = params.realm
 
-      /* Do not leave an empty counter background on single items. */
-      .section-items a[data-count=""]::before {
-        display: none;
-      }
+const parse = i => {
+  const [ data, count = '1' ] = i.split('*')
+  const [id, rand, ench ] = data.split('.')
+  return [id, rand, ench, count].map(base62)
+}
 
-      .q1 del {
-        filter: brightness(2);
-      }
-      .q2 del {
-        filter: sepia(1) hue-rotate(50deg) saturate(4);
-      }
-      .q3 del {
-        filter: sepia(1) hue-rotate(180deg) saturate(4);
-      }
-      .q4 del {
-        filter: sepia(1) hue-rotate(233deg) saturate(4);
-      }
-      .q5 del {
-        filter: sepia(1) hue-rotate(340deg) saturate(4);
-      }
-    </style>
-    <link
-      type="text/css"
-      href="https://wow.zamimg.com/css/basic.css?&amp;14"
-      rel="stylesheet"
-    />
-    <link
-      type="text/css"
-      href="https://wow.zamimg.com/css/global/icon.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="info">
-      <span id="name">player</span>
-      <br />
-      <span id="race">race</span> - <span id="realm">realm</span>
-      <br />
-      <br />
-      <a href="https://www.curseforge.com/wow/addons/shareyourbank/"
-        >get the add on</a
-      >
-      to share your own
-    </div>
-    <div id="items"></div>
-    <script>
-      const whTooltips = {
-        colorLinks: true,
-        renameLinks: true,
-        iconizeLinks: true,
-        iconSize: "medium",
-      };
+for (const [id, rand, ench, count] of params.items.split(',').map(parse)) {
+  const a = document.createElement('a')
+  a.href = `https://classic.wowhead.com/item=${id}`
+  a.dataset.wowhead = new URLSearchParams({rand, ench})
+  a.dataset.count = count > 1 ? count : ''
+  itemsElement.appendChild(a)
+}
 
-      const digits =
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-      const base62 = (str) =>
-        str
-          ? str
-              .split("")
-              .reduceRight(
-                (t, n, i) =>
-                  t + 62 ** (str.length - (i + 1)) * digits.indexOf(n),
-                0,
-              )
-          : 0;
-
-      const params = Object.fromEntries(new URLSearchParams(location.search));
-      document.getElementById("name").textContent = params.name;
-      document.getElementById("race").textContent = params.race;
-      document.getElementById("realm").textContent = params.realm;
-
-      const parse = (i) => {
-        if (!i) return null;
-        const [data, count = "1"] = i.split("*");
-        const [id, rand, ench] = data.split(".");
-        return [id, rand, ench, count].map(base62);
-      };
-
-      const sections = [
-        ["bank", "Banque"],
-        ["bankbags", "Sacs de banque"],
-        ["bags", "Sacs du personnage"],
-      ];
-
-      const createSection = (title, entries) => {
-        if (!entries) return;
-
-        const section = document.createElement("section");
-        section.className = "item-section";
-        const heading = document.createElement("h2");
-        heading.textContent = title;
-        const itemsElement = document.createElement("div");
-        itemsElement.className = "section-items";
-        section.appendChild(heading);
-        section.appendChild(itemsElement);
-
-        for (const parsed of entries.split(",").map(parse).filter(Boolean)) {
-          const [id, rand, ench, count] = parsed;
-          const a = document.createElement("a");
-          a.href = `https://classic.wowhead.com/item=${id}`;
-          a.dataset.wowhead = new URLSearchParams({ rand, ench });
-          a.dataset.count = count > 1 ? count : "";
-          itemsElement.appendChild(a);
-        }
-
-        document.getElementById("items").appendChild(section);
-      };
-
-      const hasGroupedItems = sections.some(([key]) => params[key]);
-      if (hasGroupedItems) {
-        for (const [key, title] of sections) createSection(title, params[key]);
-      } else if (params.items) {
-        createSection("Objets", params.items);
-      }
-    </script>
-    <script src="https://wow.zamimg.com/widgets/power.js"></script>
-  </body>
+</script>
+<script src="https://wow.zamimg.com/widgets/power.js"></script>
+</body>
 </html>
