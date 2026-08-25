@@ -223,7 +223,8 @@ const createSection = (title, entries, columns) => {
     const a = document.createElement('a')
     a.href = `https://classic.wowhead.com/item=${id}`
     a.dataset.wowhead = new URLSearchParams({rand, ench})
-    a.dataset.count = count > 1 ? count : ''
+    // Keep zero visible too: it is a valid remaining-charge value.
+    a.dataset.count = count !== 1 ? count : ''
     itemsElement.appendChild(a)
   }
 
